@@ -1,19 +1,16 @@
-FROM sequenceiq/spark:1.5.1
+FROM gettyimages/spark:1.5.1-hadoop-2.6
 
 MAINTAINER Ogury Team <it@ogury.co>
 
-ENV JDK_FILE=jdk-8u66-linux-x64.tar.gz
+ENV SBT_VERSION 0.13.8
+ENV SBT_HOME /usr/local/sbt
+ENV PATH ${PATH}:${SBT_HOME}/bin
 
 WORKDIR /opt
 
-# INSTALL WGET
-RUN curl https://bintray.com/sbt/rpm/rpm | tee /etc/yum.repos.d/bintray-sbt-rpm.repo && \
-    yum install -y wget sbt  && \
-    wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/8u66-b17/${JDK_FILE}" && \
-    tar xzf ${JDK_FILE} && \
-    alternatives --install /usr/bin/java java /opt/jdk1.8.0_66/bin/java 1 && \
-    alternatives --set java /opt/jdk1.8.0_66/bin/java && \
-    rm ${JDK_FILE}
+# INSTALL SBT
+RUN curl -sL "http://dl.bintray.com/sbt/native-packages/sbt/$SBT_VERSION/sbt-$SBT_VERSION.tgz" | gunzip | tar -x -C /usr/local && \
+    echo -ne "- with sbt $SBT_VERSION\n" >> /root/.built
 
 RUN sbt sbtVersion && \
     mkdir /workdir
@@ -21,4 +18,3 @@ RUN sbt sbtVersion && \
 WORKDIR /workdir
 
 CMD ["sbt", "clean test package"]
-
